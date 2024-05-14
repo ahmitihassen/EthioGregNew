@@ -1,0 +1,3 @@
+/home/light/CLionProjects/EthioGregNew/cmake-build-debug/CMakeFiles/EthioGregNew.dir
+/home/light/CLionProjects/EthioGregNew/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/light/CLionProjects/EthioGregNew/cmake-build-debug/CMakeFiles/rebuild_cache.dir
