@@ -7,19 +7,19 @@ using namespace std;
 
 ///Structures
 struct Date {
-    int16_t year;
+    uint16_t year;
     uint16_t month;
     uint16_t day;
 };
 
 struct EthioDate {
-    int16_t year;
+    uint16_t year;
     uint16_t month;
     uint16_t day;
 };
 
 ///Constants
-const int monthCode[12] = { 0, 3, 3, 6, 1, 4, 6, 2, 5, 0, 3, 5 };
+const int monthCode[12] = {0, 3, 3, 6, 1, 4, 6, 2, 5, 0, 3, 5};
 
 ///Function Declarations
 
@@ -59,15 +59,32 @@ bool isGregYear(int year);
 //precondition: year has its value set.
 //postcondition: returns true if the year is gregorian or false if it's a julian year.
 
+void printCalendar(Date date);
+//precondition: date has its day year and month value set.
+//postcondition: prints the calendar for the given year.
+
+bool isEthioLeapYear(int eyear);
+//precondition: edate has it's year month and day value set.
+//postcondition: returns true if the year is Ethiopian leap year or false if it's not.
+
+EthioDate getEthioStartDate(Date date);
+//precondition: date has correct year month and day values set.
+//postcondition: returns EthioDate variable with correct values set.
+
+void decrementEthioDate(EthioDate& edate);
+//precondition: edate has it's values set.
+//postcondition: decrements the Ethiopian date by one day.
+
 
 int main() {
     Date date = getDate();
-    cout << getWeekDay(date);
+    cout << getWeekDay(date)<<endl;
+    printCalendar(date);
 }
 
 ///Function Definitions
 Date getDate() {
-	Date date;
+    Date date;
 
     //Set day and month to 1 because printing starts from the first day of the first month.
     date.day = +1;
@@ -77,20 +94,20 @@ Date getDate() {
 
     cout << "Enter Year: ";
     cin >> date.year;
-   
+
     while (cin.fail()) {
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
         cout << "Incorrect input. Please enter the year again: ";
         cin >> date.year;
     }
-   
     return date;
 }
 
 int getWeekDay(Date date) {
     //magic formula to get weekday
-    return (getYearCode(date.year) + getMonthCode(date.month) + getCenturyCode(date.year) + date.day - getLeapYearCode(date.year)) % 7;
+    return (getYearCode(date.year) + getMonthCode(date.month) + getCenturyCode(date.year) + date.day -
+            getLeapYearCode(date.year)) % 7;
 }
 
 int getYearCode(int year) {
@@ -150,4 +167,66 @@ bool isGregYear(int year) {
     if (year > 1752)
         return true;
     return false;
+}
+
+void printCalendar(Date date) {
+    int weekDay = getWeekDay(date);
+    EthioDate eStartDate = getEthioStartDate(date);
+    cout<<date.year<<" "<<date.month<<" "<<date.day<<endl;
+    cout<<eStartDate.year<<" "<<eStartDate.month<<" "<<eStartDate.day<<endl;
+}
+
+EthioDate getEthioStartDate(Date date) {
+    EthioDate edate;
+    edate.year = date.year - 8;
+    if (date.year < 1753) {
+        edate.month = 5;
+        edate.day = 6;
+    } else {
+        edate.day = 25;
+        edate.month = 4;
+        if(date.year > 1799) {
+            int ftd = getFirstTwoDigits(date.year);
+            int startCent = 18;
+            while (startCent < ftd) {
+                startCent++;
+            }
+            for (int i = 18; i <= startCent; i++) {
+                int nextCent = i * 100;
+                if (nextCent != date.year) {
+                    if (!(isLeapYear(nextCent)))
+                        decrementEthioDate(edate);
+                }
+            }
+        }
+        if (isEthioLeapYear(edate.year - 1))
+            decrementEthioDate(edate);
+    }
+    return edate;
+}
+
+bool isEthioLeapYear(int eyear){
+    if (eyear % 4 == 3)
+        return true;
+    return false;
+}
+
+void decrementEthioDate(EthioDate& edate){
+    if (edate.month == 1) {
+        if (edate.day == 1) {
+            edate.year--;
+            edate.month = 13;
+            if (isEthioLeapYear(edate.year)) {
+                edate.day = 6;
+            } else
+                edate.day = 5;
+        } else
+            edate.day--;
+    } else {
+        if (edate.day == 1) {
+            edate.month--;
+            edate.day = 30;
+        } else
+            edate.day--;
+    }
 }
