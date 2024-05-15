@@ -5,6 +5,9 @@
 
 using namespace std;
 
+///Global Variables
+int monthDays[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+
 ///Structures
 struct Date {
     uint16_t year;
@@ -20,6 +23,11 @@ struct EthioDate {
 
 ///Constants
 const int monthCode[12] = {0, 3, 3, 6, 1, 4, 6, 2, 5, 0, 3, 5};
+const string gregMonthNames[12] = {"January", "February", "March", "April", "May", "June", "July", "August",
+                                   "September",
+                                   "October", "November", "December"};
+const string ethioMonthNames[13] = {"Meskerem", "Tikimt", "Hidar", "Tahisas", "Tir", "Yekatit", "Megabit", "Miyaza",
+                                    "Ginbot", "Sene", "Hamle", "Nehase", "Pagume"};
 
 ///Function Declarations
 
@@ -71,14 +79,33 @@ EthioDate getEthioStartDate(Date date);
 //precondition: date has correct year month and day values set.
 //postcondition: returns EthioDate variable with correct values set.
 
-void decrementEthioDate(EthioDate& edate);
+void decrementEthioDate(EthioDate &edate);
 //precondition: edate has it's values set.
 //postcondition: decrements the Ethiopian date by one day.
 
+void incrementEthioDate(EthioDate &edate);
+//precondition: edate has it's values set.
+//postcondition: increments the Ethiopian date by one day.
+
+void printMonthName(Date date, EthioDate edate);
+//precondition: date and edate has their values set.
+//postcondition: prints the gregorian month and the ethiopian month(s) within the gregorian month.
+
+int *getEthioMonthInGregMonth(int month, EthioDate edate);
+//precondition: month and edate has their values set.
+//postcondition: returns a pointer that points to an array of integers that represent the ethiopian months.
+
+void adjustMonthDays(int year);
+//precondition: year has it's value set.
+//postcondition: changes february month day to 29 if it's a leap year.
+
+void printMonth(Date date, EthioDate& edate, int startDay);
+//precondition: values are set.
+//postcondition: prints days in a given gregorian month.
 
 int main() {
     Date date = getDate();
-    cout << getWeekDay(date)<<endl;
+    cout << getWeekDay(date) << endl;
     printCalendar(date);
 }
 
@@ -135,7 +162,7 @@ int getCenturyCode(int year) {
         else if ((ftd - 20) % 4 == 0)
             return 6;
     }
-    //If the year is a julian year
+        //If the year is a julian year
     else {
         return (18 - year / 100) % 7;
     }
@@ -172,8 +199,9 @@ bool isGregYear(int year) {
 void printCalendar(Date date) {
     int weekDay = getWeekDay(date);
     EthioDate eStartDate = getEthioStartDate(date);
-    cout<<date.year<<" "<<date.month<<" "<<date.day<<endl;
-    cout<<eStartDate.year<<" "<<eStartDate.month<<" "<<eStartDate.day<<endl;
+    for (int i = 0; i < 12; i++) {
+        printMonthName(date, eStartDate);
+    }
 }
 
 EthioDate getEthioStartDate(Date date) {
@@ -185,7 +213,7 @@ EthioDate getEthioStartDate(Date date) {
     } else {
         edate.day = 25;
         edate.month = 4;
-        if(date.year > 1799) {
+        if (date.year > 1799) {
             int ftd = getFirstTwoDigits(date.year);
             int startCent = 18;
             while (startCent < ftd) {
@@ -205,13 +233,13 @@ EthioDate getEthioStartDate(Date date) {
     return edate;
 }
 
-bool isEthioLeapYear(int eyear){
+bool isEthioLeapYear(int eyear) {
     if (eyear % 4 == 3)
         return true;
     return false;
 }
 
-void decrementEthioDate(EthioDate& edate){
+void decrementEthioDate(EthioDate &edate) {
     if (edate.month == 1) {
         if (edate.day == 1) {
             edate.year--;
@@ -230,3 +258,76 @@ void decrementEthioDate(EthioDate& edate){
             edate.day--;
     }
 }
+
+void printMonthName(Date date, EthioDate edate) {
+    int *ethioMonth = getEthioMonthInGregMonth(date.month, edate);
+    cout << date.year;
+    cout.width(20);
+    cout.setf(ios::right);
+    cout << edate.year - 1 << "-" << edate.year;
+    cout << endl;
+    cout << gregMonthNames[date.month - 1];
+    cout.width(50);
+    cout.setf(ios::right);
+
+    for (int i = 0; i < 3; i++) {
+        if (ethioMonth[i] != 99)
+            cout << ethioMonthNames[ethioMonth[i] - 1] << " ";
+        else
+            cout << " ";
+    }
+
+}
+
+int *getEthioMonthInGregMonth(int month, EthioDate edate) {
+    int firstMonth = edate.month;
+    static int months[3];
+    int index = 1;
+    months[0] = firstMonth;
+    months[2] = 99;
+
+    for (int i = 0; i < monthDays[month - 1]; i++) {
+        incrementEthioDate(edate);
+        if (edate.month != firstMonth) {
+            months[index] = edate.month;
+            firstMonth = edate.month;
+            index++;
+        }
+    }
+
+    return months;
+}
+
+void incrementEthioDate(EthioDate &edate) {
+    if (edate.month == 13) {
+        if (isEthioLeapYear(edate.year)) {
+            if (edate.day == 6) {
+                edate.year++;
+                edate.month = 1;
+                edate.day = 1;
+            } else {
+                edate.day++;
+            }
+        } else {
+            if (edate.day == 5) {
+                edate.year++;
+                edate.month = 1;
+                edate.day = 1;
+            } else edate.day++;
+        }
+    } else {
+        if (edate.day == 30) {
+            edate.month++;
+            edate.day = 1;
+        } else
+            edate.day++;
+    }
+}
+
+void adjustMonthDays(int year) {
+    if (isLeapYear(year))
+        monthDays[1] = 29;
+    else
+        monthDays[1] = 28;
+}
+
