@@ -375,7 +375,6 @@ void printHyphens() {
 void printMonth(Date date, EthioDate& edate, int monthCounter) {
     date.month = monthCounter+1;
     int weekDay = getWeekDay(date);
-    cout << weekDay << endl;
     int noOfDays = monthDays[monthCounter];
     int dayCounter = 1;
     bool isFirstLine = true;
