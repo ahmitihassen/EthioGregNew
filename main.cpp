@@ -94,6 +94,10 @@ void incrementEthioDate(EthioDate &edate);
 //precondition: edate has it's values set.
 //postcondition: increments the Ethiopian date by one day.
 
+void incrementGregDate(Date& date);
+//precondition: date has it's values set.
+//postcondition: increments the date by one day.
+
 void printMonthName(Date date, EthioDate edate, int monthCounter);
 //precondition: date and edate has their values set.
 //postcondition: prints the gregorian month and the ethiopian month(s) within the gregorian month.
@@ -106,7 +110,7 @@ void adjustMonthDays(int year);
 //precondition: year has it's value set.
 //postcondition: changes february month day to 29 if it's a leap year.
 
-void printMonth(Date date, EthioDate& edate, int monthCounter);
+void printMonth(Date& date, EthioDate& edate, int monthCounter);
 //precondition: values are set.
 //postcondition: prints days in a given gregorian month.
 
@@ -115,6 +119,10 @@ void printWeekDays();
 
 void printHyphens();
 //prints hyphens to draw calendar.
+
+bool hasEthioStarted(int date);
+//precondition: date has been populated
+//returns true if date is greater than 7 8 29(m,d,y)
 
 
 int main() {
@@ -257,6 +265,11 @@ EthioDate getEthioStartDate(Date date) {
         if (isEthioLeapYear(edate.year - 1))
             decrementEthioDate(edate);
     }
+    if (date.year == 7) {
+        edate.year = 1;
+        edate.month = 1;
+        edate.day = 1;
+    }
     return edate;
 }
 
@@ -372,48 +385,94 @@ void printHyphens() {
     cout << endl;
 }
 
-void printMonth(Date date, EthioDate& edate, int monthCounter) {
-    date.month = monthCounter+1;
+void incrementGregDate(Date& date) {
+    if (date.month == 12) {
+        if (date.day == monthDays[date.month-1]) {
+            date.month = 1;
+            date.day = 1;
+            date.year++;
+        }
+        else {
+            date.day++;
+        }
+    }
+    else {
+        if (date.day == monthDays[date.month - 1]) {
+            date.month++;
+            date.day = 1;
+        }
+        else
+            date.day++;
+    }
+}
+
+bool hasEthioStarted(Date date) {
+    /*cout << endl;
+    cout << "debug output" << endl;
+    cout << date.year << " " << date.month << " " << date.day << endl;*/
+    if (date.year > 7)
+        return true;
+    if (date.year > 6 && date.month > 8)
+        return true;
+    if (date.year > 6 && date.month > 7 && date.day > 29)
+        return true;
+    return false;
+}
+
+void printMonth(Date& date, EthioDate& edate, int monthCounter) {
+    cout << date.year << " " << date.month << " " << date.day << endl;
     int weekDay = getWeekDay(date);
     int noOfDays = monthDays[monthCounter];
     int dayCounter = 1;
     bool isFirstLine = true;
     int lastDay = weekDay;
+    bool startException = true;
     while (dayCounter <= noOfDays + 1) {
 
         if (dayCounter <= noOfDays) {
             cout << "|";
             for (int i = 0; i < 7; i++) {
-                if (monthCounter == 9 && date.year == 1752 && dayCounter == 3)
+                if (monthCounter == 8 && date.year == 1752 && dayCounter == 3) {
                     dayCounter += 11;
+                    date.day += 10;
+                }
                 if ((i < weekDay && isFirstLine) || (dayCounter > noOfDays))
                     cout << setw(7) << "|";
                 else {
-                    cout << setw(6) << dayCounter << "|";
+                    cout << setw(6) << date.day << "|";
                     dayCounter++;
                     lastDay++;
                     if (lastDay > 6)
                         lastDay = 0;
+                    incrementGregDate(date);
                 }
             }
             cout << endl;
         }
 
-        for (int i = 0; i < 7; i++) {
-            if (i < weekDay && isFirstLine || (i > (lastDay > 0 ? lastDay - 1 : 6) && dayCounter > noOfDays))
-                cout << "|" << setw(7);
-            else {
-                if (edate.day > 9)
-                    cout << "|" << edate.day << setw(5);
-                else
-                    cout << "|" << edate.day << setw(6);
-                incrementEthioDate(edate);
+        if (hasEthioStarted(date)) {
+            for (int i = 0; i < 7; i++) {
+                if (i < weekDay && isFirstLine || (i > (lastDay > 0 ? lastDay - 1 : 6) && dayCounter > noOfDays))
+                    cout << "|" << setw(7);
+                else {
+                    if (date.year ==7 && date.month == 9 && date.day == 1 && startException) {
+                        cout << "|" << setw(7);
+                        startException = false;
+                        continue;
+                    }
+                    if (edate.day > 9)
+                        cout << "|" << edate.day << setw(5);
+                    else
+                        cout << "|" << edate.day << setw(6);
+                    incrementEthioDate(edate);
+                }
             }
         }
 
         isFirstLine = false;
-        if (dayCounter > noOfDays)
+        if (dayCounter > noOfDays) {
             dayCounter++;
+        }
         cout << "|" << setw(0) << endl;
         printHyphens();
     }
